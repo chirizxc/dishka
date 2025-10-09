@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_PROJECT_ENVIRONMENT: github_venv
+
 jobs:
   testing:
     name: Testing (${{ matrix.python-version }})
@@ -39,9 +42,17 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.7.0
 
+    - name: Create virtual environment
+      run: |
+        uv venv github_venv --python ${{ matrix.python-version }}
+
+    - name: Add virtual environment to PATH
+      run: |
+        echo "${{ github.workspace }}/github_venv/bin" >> $GITHUB_PATH
+
     - name: Install dependencies
       run: |
-        uv pip install . -r requirements_dev.txt --system
+        uv pip install . -r requirements_dev.txt
 
     - name: Run ruff
       run: |
@@ -58,7 +69,7 @@ jobs:
 
     - name: Build doc
       run: |
-        uv pip install -r requirements_doc.txt --system
+        uv pip install -r requirements_doc.txt
         sphinx-build -M html docs docs-build -W
 
     - name: Run zizmor
