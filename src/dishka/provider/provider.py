@@ -1,5 +1,5 @@
-import inspect
 from collections.abc import Callable, Sequence
+from operator import attrgetter
 from typing import Any, TypeGuard
 
 from dishka.dependency_source import (
@@ -66,9 +66,13 @@ class Provider(BaseProvider):
         self._init_dependency_sources()
 
     def _init_dependency_sources(self) -> None:
-        sources = inspect.getmembers(self, is_dependency_source)
-        sources.sort(key=lambda s: s[1].number)
-        for _, composite in sources:
+        sources = [
+            attr for attr
+            in self.__dict__.values()
+            if is_dependency_source(attr)
+        ]
+        sources.sort(key=attrgetter("number"))
+        for composite in sources:
             self._add_dependency_sources(composite.dependency_sources)
 
     def _name(self) -> str:
